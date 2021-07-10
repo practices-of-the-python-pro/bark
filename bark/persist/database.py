@@ -78,7 +78,7 @@ class DatabaseManager:
     def select(self, table_name, columns, criterias, order_by=None, group_by=None):
         placeholders = [f'{column} = ?' for column in criterias.keys()]
         select_creterias = ' AND '.join(placeholders)
-        select_columns = ', '.join(columns)
+        select_columns = ', '.join(columns) if columns != '*' else '*'
 
         select_sql = f'''
             SELECT {select_columns} FROM {table_name}
