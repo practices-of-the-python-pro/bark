@@ -9,7 +9,7 @@ class DatabaseManager:
         self.connection.close()
 
     def _execute(self, sql, values=None):
-        with self.connection():  # one transaction
+        with self.connection:  # one transaction
             cursor = self.connection.cursor()
             cursor.execute(sql, values or [])
             return cursor
@@ -47,7 +47,7 @@ class DatabaseManager:
         add_sql = f'''
             INSERT INTO {table_name} 
             ({', '.join(columns)})
-            VALUES {placeholders}
+            VALUES ({placeholders})
         '''
 
         '''
@@ -75,15 +75,16 @@ class DatabaseManager:
             values
         )
 
-    def select(self, table_name, columns, criterias, order_by=None, group_by=None):
-        placeholders = [f'{column} = ?' for column in criterias.keys()]
-        select_creterias = ' AND '.join(placeholders)
-        select_columns = ', '.join(columns) if columns != '*' else '*'
-
+    def select(self, table_name, criterias=None, order_by=None, group_by=None):
         select_sql = f'''
-            SELECT {select_columns} FROM {table_name}
-            WHERE {select_creterias}
+            SELECT * FROM {table_name}
         '''
+        values = [v for v in criterias.values()] if criterias else []
+
+        if criterias:
+            placeholders = [f'{column} = ?' for column in criterias.keys()]
+            select_creteria = ' AND '.join(placeholders)
+            select_sql += select_creteria
 
         if order_by:
             order_by_criteria = ' '.join([f'{column} {order_condition}' for column, order_condition in order_by.items()])
@@ -93,4 +94,4 @@ class DatabaseManager:
             group_by_criteria = ', '.join(group_by)
             select_sql += f'GROUP BY {group_by_criteria}'
 
-        return self._execute(select_sql, select_creterias)
+        return self._execute(select_sql, values)
