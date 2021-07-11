@@ -39,6 +39,7 @@ additional_options = {
 def generate_choice_option():
     return choice_options
 
+
 def option_choice_is_valid(choice, options):
     return choice in options or choice.upper() in options
     # 대소문자 구분없이 options 안에 choice가 있을 경우 True
