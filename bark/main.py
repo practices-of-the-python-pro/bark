@@ -1,5 +1,5 @@
-from bark.business import commands
-from presentation.option import Option, get_option_choice, print_options, get_additional_data
+from business import commands
+from presentation.option import get_option_choice, print_options, generate_choice_option
 
 if __name__ == '__main__':
     db_name = 'bookmarks'
@@ -15,17 +15,11 @@ if __name__ == '__main__':
         }
     )
 
-    options = {
-        'A': Option('Add a bookmark', commands.AddBookmarkCommand()),
-        'B': Option('List bookmarks by date', commands.ListBookmarksCommand()),
-        'T': Option('List bookmarks by title', commands.ListBookmarksCommand(order_by={'title': 'ASC'})),
-        'D': Option('Delete a bookmark', commands.DeleteBookmarkCommand()),
-        'Q': Option('Quit', commands.QuitCommand())
-    }
-
     print_options()
 
-    shorcut = 'Default'
-    while shorcut != 'Q':
-        shortcut, chosen_option = get_option_choice(options)
+    choice_option = generate_choice_option()
+
+    shortcut = 'Default'
+    while shortcut != 'Q':
+        shortcut, chosen_option = get_option_choice(choice_option)
         chosen_option.choose(table_name, shortcut)

@@ -9,28 +9,20 @@ class Option:
 
     def choose(self, table_name, chosen_option):
         data = get_additional_data(chosen_option) if chosen_option in additional_options else None
-
-        if data:
-            print('aaa')
-            message = self.command.execute(table_name, data)
-        else:
-            message = self.command.execute(table_name)
-        # message = self.command.execute(table_name, data) if data else self.command.execute(table_name)
-
-        if message:
-            print(message)
+        message = self.command.execute(table_name, data) if data else self.command.execute(table_name)
+        message and print(message)
 
     def __str__(self):
         return self.name
 
-
 choice_options = {
         'A': Option('Add a bookmark', commands.AddBookmarkCommand()),
         'B': Option('List bookmarks by date', commands.ListBookmarksCommand()),
-        'T': Option('List bookmarks by title', commands.ListBookmarksCommand(order_by='title')),
+        'T': Option('List bookmarks by title', commands.ListBookmarksCommand(order_by={'title': 'ASC'})),
         'D': Option('Delete a bookmark', commands.DeleteBookmarkCommand()),
         'Q': Option('Quit', commands.QuitCommand())
     }
+
 
 additional_options = {
     'A': {
@@ -43,6 +35,9 @@ additional_options = {
     }
 }
 
+
+def generate_choice_option():
+    return choice_options
 
 def option_choice_is_valid(choice, options):
     return choice in options or choice.upper() in options
