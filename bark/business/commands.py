@@ -3,6 +3,7 @@ import sys
 from bark.persist.database import DatabaseManager
 
 from datetime import datetime
+import requests
 
 db = DatabaseManager('/Users/psw/Desktop/repository/dev/app_bark/bookmarks.db')
 
@@ -16,8 +17,8 @@ class CreateBookmarksTableCommand:
 
 
 class AddBookmarkCommand:
-    def execute(self, table_name, data):
-        data['date_added'] = datetime.now().isoformat()
+    def execute(self, table_name, data, timestamp=None):
+        data['date_added'] = timestamp if timestamp else datetime.now().isoformat()
         db.add(table_name, data)
         return 'Bookmark added'
 
@@ -49,3 +50,8 @@ class DeleteBookmarkCommand:
 class QuitCommand:
     def execute(self):
         sys.exit()
+
+
+class ImportGithubStarCommand:
+    def execute(self, table_name, data):
+        pass

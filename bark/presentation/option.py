@@ -15,10 +15,12 @@ class Option:
     def __str__(self):
         return self.name
 
+
 choice_options = {
         'A': Option('Add a bookmark', commands.AddBookmarkCommand()),
         'B': Option('List bookmarks by date', commands.ListBookmarksCommand()),
         'T': Option('List bookmarks by title', commands.ListBookmarksCommand(order_by={'title': 'ASC'})),
+        'G': Option('Import Github star', commands.ImportGithubStarCommand()),
         'D': Option('Delete a bookmark', commands.DeleteBookmarkCommand()),
         'Q': Option('Quit', commands.QuitCommand())
     }
@@ -26,12 +28,16 @@ choice_options = {
 
 additional_options = {
     'A': {
-        'title': ['not null'],
-        'url': ['not null'],
+        'title': ['string', 'not null'],
+        'url': ['string', 'not null'],
         'notes': []
     },
     'D': {
         'id': ['int', 'not null']
+    },
+    'G': {
+        'username': ['not null'],
+        'preserve_timestamp': ['bool', 'not null']
     }
 }
 
