@@ -1,5 +1,5 @@
 from business import commands
-from presentation.option import get_option_choice, print_options, generate_choice_option
+from presentation.option import print_options, get_option_choice, generate_choice_option
 
 if __name__ == '__main__':
     db_name = 'bookmarks'
@@ -17,9 +17,6 @@ if __name__ == '__main__':
 
     print_options()
 
-    choice_option = generate_choice_option()
-
-    shortcut = 'Default'
-    while shortcut != 'Q':
-        shortcut, chosen_option = get_option_choice(choice_option)
-        chosen_option.choose(table_name, shortcut)
+    while True:
+        chosen_option = get_option_choice(generate_choice_option())
+        chosen_option.choose(table_name)
