@@ -1,5 +1,6 @@
 from business import commands
 from presentation.option import print_options, get_option_choice, generate_choice_option
+from common import utils
 
 if __name__ == '__main__':
     db_name = 'bookmarks'
@@ -19,4 +20,5 @@ if __name__ == '__main__':
 
     while True:
         chosen_option = get_option_choice(generate_choice_option())
+        utils.clear_screen()
         chosen_option.choose(table_name)
