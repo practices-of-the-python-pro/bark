@@ -37,9 +37,19 @@ def get_data(key):
             'id': get_user_input('Id')
         }
 
+    def get_import_github_start_data():
+        return {
+            'github_username': get_user_input('Github username'),
+            'preserve_timestamps': get_user_input(
+                'Preserve timestamps [Y/n]', required=False
+            ) in {'Y', 'y', None}
+
+        }
+
     method_by_key = {
         'A': get_add_data,
-        'D': get_delete_data
+        'D': get_delete_data,
+        'G': get_import_github_start_data
     }
 
     return method_by_key[key] if method_by_key.get(key) else None
@@ -49,7 +59,7 @@ choice_options = {
         'A': Option('Add a bookmark', commands.AddBookmarkCommand(), prep_call=get_data, key='A'),
         'B': Option('List bookmarks by date', commands.ListBookmarksCommand()),
         'T': Option('List bookmarks by title', commands.ListBookmarksCommand(order_by={'title': 'ASC'})),
-        'G': Option('Import Github star', commands.ImportGithubStarCommand()),
+        'G': Option('Import Github star', commands.ImportGithubStarCommand(), prep_call=get_data, key='G'),
         'D': Option('Delete a bookmark', commands.DeleteBookmarkCommand(), prep_call=get_data, key='D'),
         'Q': Option('Quit', commands.QuitCommand())
     }
