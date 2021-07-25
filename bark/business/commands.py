@@ -1,58 +1,74 @@
 import sys
 
-from bark.persist.database import DatabaseManager
+from bark.persist.database import DatabaseManager, BookmarkDatabase
 
 from datetime import datetime
 import requests
+from abc import ABC, abstractmethod
+# db = DatabaseManager('/Users/psw/Desktop/repository/dev/app_bark/bookmarks.db')
 
-db = DatabaseManager('/Users/psw/Desktop/repository/dev/app_bark/bookmarks.db')
-
-
-class CreateBookmarksTableCommand:
-    def execute(self, table_name, data):
-        db.create_table(
-            table_name,
-            data
-        )
+persistance = BookmarkDatabase()
 
 
-class AddBookmarkCommand:
-    def execute(self, table_name, data, timestamp=None):
+class Command(ABC):
+    @abstractmethod
+    def execute(self, data, timestamp):
+        pass
+
+
+class CreateBookmarksTableCommand(Command):
+    def execute(self, data, timestamp=None):
+        persistance.create(data)
+
+
+class AddBookmarkCommand(Command):
+    def execute(self, data, timestamp=None):
         data['date_added'] = timestamp if timestamp else datetime.now().isoformat()
-        db.add(table_name, data)
-        return 'Bookmark added'
+        persistance.create(data)
+        # db.add(table_name, data)
+        return True, None
 
 
-class ListBookmarksCommand:
+class EditBookmarkCommand(Command):
+    def execute(self, data, timestamp=None):
+        # db.edit(table_name, data)
+        persistance.edit(data)
+        return True, None
+
+
+class ListBookmarksCommand(Command):
     def __init__(self, order_by=None, group_by=None):
         if order_by is None:
             order_by = {'date_added': 'ASC'}
         self.order_by = order_by
         self.group_by = group_by
 
-    def execute(self, table_name, data=None):
-        return db.select(
-            table_name=table_name,
-            criterias=data,
-            order_by=self.order_by,
-            group_by=self.group_by
-        ).fetchall()
+    def execute(self, data=None, timestamp=None):
+        return True, persistance.list(criterias=data, order_by=self.order_by, group_by=self.group_by)
+        # return True, db.select(
+        #     table_name=table_name,
+        #     criterias=data,
+        #     order_by=self.order_by,
+        #     group_by=self.group_by
+        # ).fetchall()
 
 
-class DeleteBookmarkCommand:
-    def execute(self, table_name, data):
-        db.delete(
-            table_name=table_name,
-            criterias=data
-        )
+class DeleteBookmarkCommand(Command):
+    def execute(self, table_name, data, timestamp=None):
+        # db.delete(
+        #     table_name=table_name,
+        #     criterias=data
+        # )
+        persistance.delete(data)
 
 
-class QuitCommand:
-    def execute(self):
+class QuitCommand(Command):
+    def execute(self, table_name=None, data=None, timestamp=None):
         sys.exit()
 
 
-class ImportGithubStarCommand:
+
+class ImportGithubStarCommand(Command):
     def _extract_bookmark_info(self, repo):
         return {
             'title': repo['name'],
@@ -60,7 +76,7 @@ class ImportGithubStarCommand:
             'notes': repo['description']
         }
 
-    def execute(self, table_name, data):
+    def execute(self, table_name, data, timestamp=None):
         bookmarks_imported = 0
 
         github_username = data['github_username']

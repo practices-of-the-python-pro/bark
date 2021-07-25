@@ -1,4 +1,51 @@
+from abc import ABC, abstractmethod
 import sqlite3
+
+
+class PersistenceLayer(ABC):
+    @abstractmethod
+    def create(self, data):
+        raise NotImplementedError('Persistence layers must implement a create method!')
+
+    @abstractmethod
+    def list(self, data):
+        raise NotImplementedError('Persistence layers must implement a list method!')
+
+    @abstractmethod
+    def edit(self, data):
+        raise NotImplementedError('Persistence layers must implement an edit method!')
+
+    @abstractmethod
+    def delete(self, data):
+        raise NotImplementedError('Persistence layers must implement a delete method!')
+
+
+class BookmarkDatabase(PersistenceLayer):
+    def __init__(self):
+        self.table_name = 'bookmarks'
+        self.db = DatabaseManager('/Users/psw/Desktop/repository/dev/app_bark/bookmarks.db')
+
+        self.db.create_table(self.table_name,
+                             {
+                                 'id': 'integer primary key autoincrement',
+                                 'title': 'text not null',
+                                 'url': 'text not null',
+                                 'notes': 'text',
+                                 'date_added': 'text not null'
+                             }
+                             )
+
+    def create(self, data):
+        self.db.add(self.table_name, data)
+
+    def list(self, criterias, order_by='date_added', group_by=None):
+        return self.db.select(self.table_name, order_by=order_by, group_by=group_by).fetchall()
+
+    def edit(self, data):
+        self.db.edit(self.table_name, data)
+
+    def delete(self, data):
+        self.db.delete(self.table_name, data)
 
 
 class DatabaseManager:
@@ -13,6 +60,9 @@ class DatabaseManager:
             cursor = self.connection.cursor()
             cursor.execute(sql, values or [])
             return cursor
+
+    def generate_criterias_to_values(self, criterias):
+        return ', '.join(criterias)
 
     def create_table(self, table_name, columns_info):
         columns_with_types = [
@@ -75,6 +125,33 @@ class DatabaseManager:
             values
         )
 
+        return True, None
+
+    def edit(self, table_name, criterias):
+        set_criterias = [f'{column} = "{value}"' for column, value in criterias.items() if
+                         (column not in ['id']) and value]
+        where_criterias = [f'{column} = ?' for column in criterias.keys() if column in ['id']]
+
+        set_criterias = self.generate_criterias_to_values(set_criterias)
+        where_criterias = self.generate_criterias_to_values(where_criterias)
+
+        where_values = [value for column, value in criterias.items() if column in ['id']]
+
+        edit_sql = f'''
+            UPDATE {table_name} 
+            SET {set_criterias}
+            WHERE {where_criterias} 
+        '''
+
+        print(f'====edit sql : {edit_sql}')
+        print(where_values)
+        self._execute(
+            edit_sql,
+            where_values
+        )
+
+        return True, None
+
     def select(self, table_name, criterias=None, order_by=None, group_by=None):
         select_sql = f'''
             SELECT * FROM {table_name}
@@ -87,7 +164,8 @@ class DatabaseManager:
             select_sql += select_creteria
 
         if order_by:
-            order_by_criteria = ' '.join([f'{column} {order_condition}' for column, order_condition in order_by.items()])
+            order_by_criteria = ' '.join(
+                [f'{column} {order_condition}' for column, order_condition in order_by.items()])
             select_sql += f'ORDER BY {order_by_criteria}'
 
         if group_by:
